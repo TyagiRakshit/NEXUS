@@ -1,0 +1,32 @@
+services:
+  database:
+    image: postgres:17.6-bookworm
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
+      NEXUS_DEMO_PCAP_PATH: /app/fixtures/phase2-demo.pcap
+      NEXUS_NORMAL_PCAP_PATH: /app/fixtures/phase3-normal.pcap
+      NEXUS_DETECTION_TRAINING_PCAP_PATH: /app/fixtures/phase4-normal-training.pcap
+      NEXUS_DETECTION_UNUSUAL_PCAP_PATH: /app/fixtures/phase4-unusual.pcap
+    volumes:
+      - ./data/pcap/phase2-demo.pcap:/app/fixtures/phase2-demo.pcap:ro
+      - ./data/pcap/phase3-normal.pcap:/app/fixtures/phase3-normal.pcap:ro
+      - ./data/pcap/phase4-normal-training.pcap:/app/fixtures/phase4-normal-training.pcap:ro
+      - ./data/pcap/phase4-unusual.pcap:/app/fixtures/phase4-unusual.pcap:ro
+      - ./data/demo-keys:/app/demo-keys
+      - ./data/demo-evidence:/app/demo-evidence
+    ports:
+      - "127.0.0.1:8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "127.0.0.1:5173:5173"

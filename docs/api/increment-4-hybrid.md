@@ -1,0 +1,36 @@
+# Increment 4 hybrid detection API
+
+Status: owner-accepted for the controlled offline academic demonstration and committed at `97b32502e98f869dab519ae6fc1c01fd81ffd9bc`. The fixed Phase 4 model, Increment 2 baseline policy, Phase 5C v1 telemetry and accepted Increment 3 legacy sequence remain available.
+
+## Sequence
+
+1. POST /api/v1/demo/upload/analyze with an authorized payload-free PCAP. Keep its analysis_id. The upload uses the separate fixed synthetic training fixture and retains scored metadata in memory; it does not update the adaptive baseline.
+2. Opt in with POST /api/v1/demo/hybrid/evaluate and JSON body {"analysis_id":"UUID"}. The server reads the retained scored observation, assesses only metadata-supported possible port sweep and possible host reconnaissance, then performs one guarded host admission. Rules are assessed before this admission.
+3. GET /api/v1/demo/hybrid/{analysis_id} reads the already-finalized hybrid result. GET /api/v1/demo/baselines/history?host_ip=... still supplies bounded baseline graph history. POST /api/v1/demo/baselines/evaluate remains the legacy v1 admission route.
+4. Optional manual POST /api/v1/demo/hybrid/telemetry/protect with {"analysis_id":"UUID"} protects all eligible High unified findings in a separate v2 batch. GET /api/v1/demo/hybrid/telemetry/{analysis_id}/status reports preparing during admission, then not_requested or protected. Protection during preparing returns 409 HYBRID_EVALUATION_PENDING and creates no artifact. POST /api/v1/demo/hybrid/telemetry/{protection_id}/verify and POST /api/v1/demo/hybrid/telemetry/{protection_id}/verify-tampered verify the live batch or reject an altered in-memory copy.
+
+## Versioned result
+
+Hybrid evaluation returns schema_version phase7.hybrid.v1 and source REPLAYED DEMO TRAFFIC. It carries analysis_id, observation_id, UTC capture window, unchanged fixed model version/threshold, rule_set_version increment4-demo-rules-v1, baseline_store_epoch, ordered flow_results with original anomaly_score/risk_level/risk_score/alert_flagged, ordered rule_assessments, host admission and findings, and a telemetry-eligible count. The evaluate response is immutable; mutable protection status is read separately.
+
+Rule assessments have status Match, NoPatternMatchedInObservedMetadata, or Unknown. A Match reports deterministic rule_evidence_strength 60–90; a covered nonmatch reports 0; Unknown / INSUFFICIENT_EVIDENCE has null score. The score is evidence strength, never a calibrated attack probability. A short capture may match; adaptive learning still requires its own approved window and coverage checks. Port 53 is only DNS-port metadata, not a parsed DNS query. No outbound exfiltration, confirmed attack initiation or Critical classification is claimed.
+
+Each phase7.finding.v1 record has a UUIDv5 finding_id derived from canonical analysis/observation/source/kind/subject/flow references, detection_source, kind, severity, subject_scope, host_ip or sorted subject_host_ips, possible_category, sorted flow_indices, metadata-only evidence, explanation, original ML score or rule evidence score where applicable, and telemetry_eligible. Flow ML, host baseline and rule evidence remain separate. High R1 port-sweep evidence vetoes both hosts in the supporting pair; High R2 reconnaissance evidence vetoes only the focal host. A veto rejects learning, not a claim that the host is an attacker. Unknown and nonmatching rules never veto.
+
+The authoritative host admission is finalized once per analysis_id. Repeated or concurrent hybrid calls return the same result. A hybrid-first result remains readable through the legacy phase6.baseline.v1 evaluate/history routes. A legacy-first result may be reused for a read-only hybrid projection when High rule evidence would not change its finalized admission. If it would turn any finalized Accept/Hold into Reject or reverse an update, hybrid evaluation returns 409 HYBRID_EVALUATION_CONFLICT without changing baseline, history, findings or telemetry. Unknown/expired analysis IDs fail visibly with 404; capacity failures use 503. In-memory state, scored observations and evaluation results expire or disappear on restart.
+
+## Manual telemetry v1 and v2
+
+Unified findings include UTC supporting capture-window bounds. Severe baseline evidence retains observed and baseline values, deviation, accept/hold limits, band and reason. Matching rule evidence retains observed counts and exact applicable gates, including qualifying port orientations for R1. These metadata fields enter the v2 signed content.
+
+Phase 5C v1 routes, canonical bytes, verification and protected-telemetry-{analysis_id}.json path are unchanged. V1 protects all original High/90/flagged flow alerts. Opt-in phase7.secure-telemetry.v2 protects each distinct eligible High unified finding, including High rule and baseline-only findings, into protected-telemetry-v2-{analysis_id}.json. Medium findings and Unknown assessments are excluded. Each version has its own registry and path, so v1 and v2 can coexist for one analysis. Repeated v2 protection returns the original count without creating new nonces or rewriting evidence; an existing v2 path after in-memory expiry/restart gives 409 ARTIFACT_ALREADY_EXISTS instead of overwrite.
+
+V2 reuses AES-256-GCM, SHA-256 digest and RSA-PSS/SHA-256 with existing local demo key formats. Its schema version, analysis ID, finding ID and record ID are bound into authenticated associated data and the signed envelope; canonical plaintext also carries the version and finding. Verification checks each live in-memory envelope, signature, ciphertext authentication, digest, version and finding identity. The tampered-copy route proves rejection without altering the saved batch. The verify route does not reload protected JSON from disk, so this demo does not claim offline verification of a file changed outside the process. No key, plaintext or ciphertext appears in API responses. Windows host-key isolation remains OPEN / NOT VERIFIED despite container mode and cryptographic checks.
+
+## Frontend contract
+
+Increment 5 can graph capture windows, baseline_store_epoch, host readiness, decision/reason, baseline before/after, version before/after and history_host_ip; it can display original ML scores, rule status/evidence, source-labelled findings and version-specific protection status. It must not calculate rule scores, infer attack direction or verify cryptography in the browser.
+
+## Increment 5 planning handoff (2026-11-02 IST)
+
+The [proposed frontend plan](../plans/increment-05-frontend-visualization-plan.md) maps the existing responses without changing this accepted API. History retains 32 decisions and the last eight accepted snapshots, but no past observed host values for Hold/Reject. A same-session ledger of actual evaluate responses can fill those graph points; absent points must be shown as unavailable. This API has no authoritative first-admission-origin field, and Phase 5C v1 has no GET status route. A dashboard may report its own chosen evaluation route and current-session v1 status, but must not claim these can be recovered after restart. These limits require owner review before Increment 5 implementation.

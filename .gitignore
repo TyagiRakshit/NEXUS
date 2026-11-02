@@ -1,0 +1,102 @@
+# Python generated files and environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+
+# Node and frontend generated files
+node_modules/
+coverage/
+.vite/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+keys/
+.secrets/
+
+# Raw captures and local telemetry
+*.pcap
+*.pcapng
+data/pcap/
+data/demo-keys/
+data/demo-evidence/
+uploads/
+data/raw/
+telemetry/local/
+
+# Intentionally approved test fixtures may be committed later
+!tests/fixtures/*.pcap
+!tests/fixtures/*.pcapng
+
+# Local operating-system and editor noise
+.DS_Store
+Thumbs.db
+
+# Local reference containing student information
+NEXUS_Synopsis.pdf
+
+# Generated offline evaluation corpus: keep binary captures and result evidence local
+data/nexus-evaluation-corpus/manifest.json
+data/nexus-evaluation-corpus/expected-vs-actual.csv
+data/nexus-evaluation-corpus-*/
+
+# Generated multi-host adaptive demo evidence
+data/nexus-multihost-adaptive-demo/manifest.json
+data/nexus-multihost-adaptive-demo/expected-vs-actual.csv
+
+# Generated one-file final Hybrid demo evidence
+data/nexus-final-demo/manifest.json
+data/nexus-final-demo/expected-vs-actual.csv
+
+# Publication safety for local outputs outside the standard demo directories
+--help/
+protected-telemetry*.json
+test-results/
+playwright-report/
+tmp/
+*.tmp
+@'
+
+# AI agents and skills
+AGENTS.md
+**/AGENTS.md
+CLAUDE.md
+**/CLAUDE.md
+.codex/
+.claude/
+.cursor/
+.agents/
+.skills/
+skills/
+**/SKILL.md
+.github/agents/
+.github/instructions/
+.github/prompts/
+
+# Internal plans and operational handoffs
+docs/plans/
+docs/PROJECT_STATUS.md
+docs/requirements-traceability.md
+*.local.md
+
+# Internal skill configuration
+skills-lock.json
+
+# Accidental duplicate ignore file
+/gitignore
+/.gitignore.backup
+'@ | Add-Content .gitignore

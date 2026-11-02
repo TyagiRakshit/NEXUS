@@ -1,0 +1,11 @@
+services:
+  backend:
+    environment:
+      NEXUS_TEST_PCAP_PATH: /app/fixtures/phase2-demo.pcap
+      NEXUS_TEST_PHASE3_PCAP_PATH: /app/fixtures/phase3-normal.pcap
+      NEXUS_TEST_PHASE4_NORMAL_PCAP_PATH: /app/fixtures/phase4-normal-training.pcap
+      NEXUS_TEST_PHASE4_UNUSUAL_PCAP_PATH: /app/fixtures/phase4-unusual.pcap
+      NEXUS_TEST_PHASE4_MIXED_PCAP_PATH: /app/fixtures/phase4-mixed-demo.pcap
+    volumes:
+      - ./data/pcap/phase4-mixed-demo.pcap:/app/fixtures/phase4-mixed-demo.pcap:ro
+      - ./scripts:/app/scripts:ro
